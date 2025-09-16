@@ -39,7 +39,7 @@ Finally, you can run the Streamlit initiation command and start using The Oracle
 
 ```bash
 $ git clone git@github.com:gabrieldpbarros/Oracle-Project.git
-$ cd Oracle/
+$ cd Oracle-Project/
 $ pip install -r .\requirements.txt
 $ streamlit run .\web.py
 ```

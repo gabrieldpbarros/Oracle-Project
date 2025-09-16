@@ -1,11 +1,35 @@
 import streamlit as st
 
+from langchain_groq import ChatGroq
+from langchain.memory import ConversationBufferMemory
+from langchain_openai import ChatOpenAI
+
 VALID_ARCH_TYPES = [
     "Site", "Youtube", "PDF", "CSV", "TXT"
 ]
 
-VALID_PROVIDERS = {"Groq": {"models": ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "openai/gpt-oss-120b", "openai/gpt-oss-20b"]},
-                   "OpenAI": {"models": ["gpt-4o-mini", "gpt-oss-120b", "gpt-oss-20b"]}}
+VALID_PROVIDERS = {"Groq":
+                        {"models": ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "openai/gpt-oss-120b", "openai/gpt-oss-20b"],
+                         "chat": ChatGroq},
+                   "OpenAI":
+                        {"models": ["gpt-4o-mini"],
+                         "chat": ChatOpenAI}}
+
+MEMORY = ConversationBufferMemory()
+# Demonstração básica de memória
+# MEMORY.chat_memory.add_user_message("Hello, AI!")
+# MEMORY.chat_memory.add_ai_message("Hello, human!")
+
+def load_model(provider: str, model: str, api_key: str):
+    """
+        CARREGA O MODELO ESPECIFICADO PELOS PARÂMETROS
+
+        Insere as informações passadas à função em uma variável padronizada e a salva na memória do Streamlit
+    """
+    # Padronização para qualquer modelo
+    chat = VALID_PROVIDERS[provider]["chat"](model=model, api_key=api_key) # carrega a classe responsável pela inicialização do modelo e fornece os parâmetros requeridos
+    st.session_state["chat"] = chat # salva na memória do Streamlit o modelo utilizado, evitando a necessidade de retornar a variável
+
 
 def chat_page():
     """
@@ -16,23 +40,19 @@ def chat_page():
     # Título que aparece na página principal (parâmetro 'divider' coloca uma divisória abaixo do título)
     st.header("👾 Welcome to your personal Oracle!", divider=True)
 
-    # Esse é o formato de "messages" 
-    # EX_MESSAGE = [
-    #     ("user", "Hello!"), # (role, content)
-    #     ("assistant", "What's up?"),
-    #     ("user", "Not much.")
-    # ]
-
     # Session state é a memória do Streamlit 
-    messages = st.session_state.get("messages", []) # retorna uma lista vazia se não encontrar mensagens anteriores
-    for message in messages:
-        chat = st.chat_message(message[0]) # formatação de chat (role)
-        chat.markdown(message[1]) # escreve no chat criado (conteúdo)
+    chat_model = st.session_state.get("chat") # puxa da memória o chat
+    memory = st.session_state.get("memory", MEMORY)
+    for message in memory.buffer_as_messages:
+        chat = st.chat_message(message.type) # formatação de chat (role)
+        chat.markdown(message.content) # escreve no chat criado (conteúdo)
 
     user_input = st.chat_input("Write here")
     if user_input:
-        messages.append(("user", user_input)) # salva a mensagem na lista de tuplas
-        st.session_state["messages"] = messages # salva na memória do Streamlit
+        memory.chat_memory.add_user_message(user_input) # salva a mensagem do usuário (langchain)
+        answer = chat_model.invoke(user_input).content # armazena a mensagem que será passada para o modelo
+        memory.chat_memory.add_ai_message(answer) # salva a mensagem do modelo (langchain)
+        st.session_state["memory"] = memory # salva na memória do Streamlit
         st.rerun() # roda a função novamente
 
 def sidebar():
@@ -72,6 +92,9 @@ def sidebar():
         # Armazena na memória do Streamlit o valor inserido na caixa de texto da chave da API
         st.session_state[f"api_key_{provider}"] = api_key # salva uma variável chamada "api_key_{provedor}" na memória
 
+    if st.button("Initialize Oracle", use_container_width=True): # o segundo parâmetro apenas ajusta o botão para o mesmo tamanho das selectboxes
+        load_model(provider, model, api_key)
+
 def main():
     chat_page()
     with st.sidebar: # tudo que estiver dentro deste método vai ser exibido na sidebar do Streamlit
@@ -79,3 +102,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# algum bug acontece que reinicia os texboxes quando converso com o modelo, corrigir isso
