@@ -1,5 +1,6 @@
 import streamlit as st
 
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_groq import ChatGroq
 from langchain.memory import ConversationBufferMemory
 from langchain_openai import ChatOpenAI
@@ -9,11 +10,14 @@ VALID_ARCH_TYPES = [
 ]
 
 VALID_PROVIDERS = {"Groq":
-                        {"models": ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "openai/gpt-oss-120b", "openai/gpt-oss-20b"],
+                        {"models": ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "openai/gpt-oss-120b", "openai/gpt-oss-20b" , "gemma2-9b-it", "deepseek-r1-distill-llama-70b"],
                          "chat": ChatGroq},
                    "OpenAI":
                         {"models": ["gpt-4o-mini"],
-                         "chat": ChatOpenAI}}
+                         "chat": ChatOpenAI},
+                    "Google":
+                        {"models" : ["gemini-2.5-flash", "gemini-2.5-pro"],
+                         "chat": ChatGoogleGenerativeAI}}
 
 MEMORY = ConversationBufferMemory()
 # Demonstração básica de memória
@@ -49,11 +53,16 @@ def chat_page():
 
     user_input = st.chat_input("Write here")
     if user_input:
+        # Parte responsável por fazer o texto aparecer sequencialmente no chat
+        chat = st.chat_message("human") # cria uma nova janela do usuário
+        chat.markdown(user_input) # mostra a mensagem que o usuário enviou
+        chat = st.chat_message("ai") # cria uma nova janela da IA
+        answer = chat.write_stream(chat_model.stream(user_input)) # escreve a mensagem em stream
+
         memory.chat_memory.add_user_message(user_input) # salva a mensagem do usuário (langchain)
-        answer = chat_model.invoke(user_input).content # armazena a mensagem que será passada para o modelo
+        # answer = chat_model.invoke(user_input).content # armazena a mensagem que será passada para o modelo (OLD)
         memory.chat_memory.add_ai_message(answer) # salva a mensagem do modelo (langchain)
-        st.session_state["memory"] = memory # salva na memória do Streamlit
-        st.rerun() # roda a função novamente
+        st.session_state["memory"] = memory # atualiza a memória do Streamlit
 
 def sidebar():
     """
@@ -104,3 +113,4 @@ if __name__ == "__main__":
     main()
 
 # algum bug acontece que reinicia os texboxes quando converso com o modelo, corrigir isso
+# CORREÇÃO: o st.rerun() no condicional do input do usuário, na função chat_page, por algum motivo estava reiniciando o que aparecia na sidebar

@@ -11,7 +11,7 @@ Your **personal** know-it-all chatbot. The Oracle stores provided data and gives
 
 ## Features
 
-- Access to well-established Large Language Models (LLMs), such as *Llama-3.3-70b* and *GPT-oss-120b*;
+- Access to well-established Large Language Models (LLMs), such as *Llama-3.3-70b* and *GPT-4o-mini*;
 - Simple and customizable interface;
 - Support for YouTube and sites URLs, PDFs, CSVs and TXTs;
 - Data memory.
