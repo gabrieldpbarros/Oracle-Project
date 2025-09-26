@@ -6,9 +6,6 @@
 
 Your **personal** know-it-all chatbot. The Oracle stores provided data and gives insights on everything involving that data.
 
-> [!WARNING]
-> This project is under progress.
-
 ## Features
 
 - Access to well-established Large Language Models (LLMs), such as *Llama-3.3-70b* and *GPT-4o-mini*;
@@ -45,3 +42,12 @@ $ streamlit run .\web.py
 ```
 
 ## Usage
+
+Accessing the web app, the user needs to select a model in the **Model Selection** tab and insert the corresponding API Key
+
+> [!IMPORTANT]
+> The user must request an API Key from the provider externally. If you want to run a *Groq* model, you must have access to a *Groq API* key, for example.
+
+Then, you can return to the **Archive Upload** tab and select whichever type of upload as you desire. 
+
+With all this completed, now you can run the model and start chatting with it.
